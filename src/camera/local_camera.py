@@ -1,6 +1,6 @@
 import cv2
-from camera.base_camera import BaseCamera
-from config import DEFAULT_CAMERA_INDEX, FRAME_WIDTH, FRAME_HEIGHT
+from src.camera.base_camera import BaseCamera
+from src.config import DEFAULT_CAMERA_INDEX, FRAME_WIDTH, FRAME_HEIGHT
 
 
 class LocalCamera(BaseCamera):

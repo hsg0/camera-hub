@@ -16,3 +16,6 @@ pip install -r requirements.txt
 python src/main.py
 ```
 # camera-hub
+
+# how to run it on ubuntu server
+# python3 -m src.camera.ingest_test

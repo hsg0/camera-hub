@@ -2,9 +2,9 @@ import os
 import time
 import cv2
 
-from camera.local_camera import LocalCamera
-from config import SNAPSHOT_DIR
-from utils.logger import log
+from src.camera.local_camera import LocalCamera
+from src.config import SNAPSHOT_DIR
+from src.utils.logger import log
 
 
 def main() -> None:
