@@ -6,7 +6,8 @@ from src.camera.camera_factory import create_camera
 from src.config import CAMERA_SOURCE_TYPE, CAMERA_SOURCE_VALUE, SNAPSHOT_DIR
 from src.utils.logger import log
 
-MOTION_THRESHOLD = 5000
+MOTION_THRESHOLD = 290         # min changed pixels to consider motion (640x480 ~ 0.16%)
+MIN_CONTOUR_AREA = 300         # ignore contours smaller than this (filters sensor noise)
 MOTION_COOLDOWN_SECONDS = 5
 
 
@@ -48,18 +49,22 @@ def main() -> None:
 
             frame_delta = cv2.absdiff(prev_gray, gray)
             thresh = cv2.threshold(frame_delta, 25, 255, cv2.THRESH_BINARY)[1]
+            thresh = cv2.dilate(thresh, None, iterations=2)
+
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            significant_contours = [c for c in contours if cv2.contourArea(c) >= MIN_CONTOUR_AREA]
             motion_score = thresh.sum() / 255
 
-            log(f"motion_score={motion_score}")
-
             now = time.time()
-            if motion_score > MOTION_THRESHOLD and (now - last_motion_save) >= MOTION_COOLDOWN_SECONDS:
+            if (motion_score > MOTION_THRESHOLD
+                    and significant_contours
+                    and (now - last_motion_save) >= MOTION_COOLDOWN_SECONDS):
                 filename = os.path.join(SNAPSHOT_DIR, f"motion_{int(now)}.jpg")
                 cv2.imwrite(filename, frame)
-                log(f"MOTION DETECTED -> saved snapshot: {filename}")
+                log(f"MOTION DETECTED (score={int(motion_score)}, contours={len(significant_contours)}) -> {filename}")
                 last_motion_save = now
 
-            prev_gray = cv2.GaussianBlur(prev_gray, (21, 21), 0)
+            prev_gray = gray
             time.sleep(0.2)
 
     except KeyboardInterrupt:
